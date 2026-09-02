@@ -1,7 +1,7 @@
 💡 Раздача родителям и ученикам
 Просто отправьте в чат класса:
 📱 Расписание класса
-Ссылка: [https://ваш-сайт.netlify.app](https://alexmakarchuk-art.github.io/sheduler/)
+Ссылка: https://alexmakarchuk-art.github.io/sheduler/
 Как установить:
 Откройте ссылку в Safari
 Нажмите ⬆️ «Поделиться»
