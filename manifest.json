@@ -1,1 +1,24 @@
-
+{
+  "name": "Расписание 6Б класс 2026-2027",
+  "short_name": "6Б Расписание",
+  "description": "Учебный календарь 6 Б класса",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F2F2F7",
+  "theme_color": "#007AFF",
+  "lang": "ru-RU",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
