@@ -1,1 +1,452 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
+<!-- PWA: iOS -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="5Б Расписание">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#007AFF">
+
+<!-- Иконки -->
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="167x167" href="icons/icon-512.png">
+<link rel="apple-touch-icon" sizes="120x120" href="icons/icon-192.png">
+<link rel="manifest" href="manifest.json">
+
+<meta name="format-detection" content="telephone=no">
+<title>Расписание 6 "Б" класс 2026–2027</title>
+
+<style>
+  :root {
+    --ios-bg: #F2F2F7;
+    --ios-card: #FFFFFF;
+    --ios-text: #000000;
+    --ios-text-secondary: #8E8E93;
+    --ios-accent: #007AFF;
+    --ios-red: #FF3B30;
+    --ios-separator: rgba(60, 60, 67, 0.1);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ios-bg: #000000;
+      --ios-card: #1C1C1E;
+      --ios-text: #FFFFFF;
+      --ios-text-secondary: #8E8E93;
+      --ios-separator: rgba(84, 84, 88, 0.65);
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0; padding: 16px;
+    background-color: var(--ios-bg);
+    color: var(--ios-text);
+    line-height: 1.4;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  header { text-align: center; margin-bottom: 24px; padding-top: 8px; }
+  header h1 { margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -0.5px; color: var(--ios-text); }
+  header p { margin: 6px 0 0; font-size: 17px; color: var(--ios-text-secondary); font-weight: 400; }
+  .controls { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 24px; max-width: 600px; margin-left: auto; margin-right: auto; }
+  .controls button { background: var(--ios-card); color: var(--ios-accent); border: none; padding: 12px 16px; font-size: 17px; font-weight: 600; border-radius: 10px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  .controls button:active { transform: scale(0.97); background: var(--ios-bg); }
+  .controls button.btn-reset { color: var(--ios-red); }
+  .year-section { background: var(--ios-card); padding: 16px; margin-bottom: 20px; border-radius: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.02); }
+  .year-section h2 { margin: 0 0 16px 8px; font-size: 22px; font-weight: 700; color: var(--ios-text); letter-spacing: -0.3px; }
+  .months-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .month { background: var(--ios-card); border-radius: 12px; overflow: hidden; }
+  .month-title { background: transparent; color: var(--ios-accent); text-align: left; padding: 8px 12px; font-weight: 700; font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px; }
+  table { width: 100%; border-collapse: separate; border-spacing: 0; }
+  th { color: var(--ios-text-secondary); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 0; border-bottom: 0.5px solid var(--ios-separator); }
+  th.weekend-header { color: var(--ios-red); }
+  td { text-align: center; padding: 6px 0; font-size: 17px; font-weight: 400; height: 44px; vertical-align: middle; position: relative; cursor: pointer; transition: background 0.15s; }
+  td:active { background: var(--ios-bg); border-radius: 50%; }
+  td.weekend { color: var(--ios-red); font-weight: 500; }
+  td.holiday { color: var(--ios-red); font-weight: 600; background: rgba(255, 59, 48, 0.08); }
+  td.has-schedule { font-weight: 600; color: var(--ios-text); }
+  td.has-schedule::after { content: ""; position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; background-color: var(--ios-accent); border-radius: 50%; }
+  td.holiday.has-schedule::after { background-color: var(--ios-red); }
+  .legend { margin-top: 24px; padding: 16px; background: var(--ios-card); border-radius: 12px; font-size: 15px; display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; color: var(--ios-text-secondary); }
+  .legend-item { display: flex; align-items: center; gap: 8px; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 1000; align-items: flex-end; justify-content: center; }
+  .modal-overlay.active { display: flex; }
+  .modal { background: var(--ios-card); width: 100%; max-width: 500px; max-height: 85vh; border-radius: 20px 20px 0 0; overflow-y: auto; animation: slideUp 0.35s cubic-bezier(0.32, 0.72, 0, 1); box-shadow: 0 -4px 20px rgba(0,0,0,0.1); }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-header { background: var(--ios-card); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1; border-bottom: 0.5px solid var(--ios-separator); }
+  .modal-header h3 { margin: 0; font-size: 17px; font-weight: 600; color: var(--ios-text); }
+  .modal-close { background: transparent; border: none; color: var(--ios-accent); font-size: 17px; font-weight: 600; cursor: pointer; padding: 4px 8px; }
+  .modal-body { padding: 8px 20px 24px; }
+  .lesson-item { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 0.5px solid var(--ios-separator); }
+  .lesson-item:last-child { border-bottom: none; }
+  .lesson-num { color: var(--ios-text-secondary); font-weight: 600; width: 32px; flex-shrink: 0; font-size: 17px; }
+  .lesson-info { flex-grow: 1; display: flex; flex-direction: column; }
+  .lesson-subject { font-weight: 500; color: var(--ios-text); font-size: 17px; }
+  .lesson-room { font-size: 15px; color: var(--ios-text-secondary); margin-top: 2px; }
+  .empty-message { text-align: center; color: var(--ios-text-secondary); padding: 40px 0; font-size: 17px; line-height: 1.5; }
+  @media (max-width: 768px) {
+    body { padding: 12px; }
+    .months-grid { grid-template-columns: 1fr; gap: 16px; }
+    .year-section { padding: 12px; }
+    td { font-size: 16px; height: 40px; }
+    header h1 { font-size: 28px; }
+  }
+  @media (min-width: 769px) and (max-width: 1024px) {
+    .months-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @page { size: A4; margin: 12mm; }
+  @media print {
+    body { background: #fff; padding: 0; color: #000; }
+    .controls, .modal-overlay, .legend { display: none !important; }
+    .year-section { box-shadow: none; border: 1px solid #ddd; page-break-after: always; padding: 12px; background: #fff; }
+    .year-section:last-child { page-break-after: auto; }
+    .months-grid { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .month { border: 1px solid #eee; }
+    th, td { font-size: 10px; height: 26px; color: #000 !important; }
+    th { border-bottom: 1px solid #ccc; }
+    td.holiday { background: #f9f9f9 !important; }
+    td.has-schedule::after { width: 4px; height: 4px; background: #000 !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>5 «Б» класс</h1>
+  <p>Учебный год 2026–2027</p>
+</header>
+
+<div class="controls">
+  <button onclick="window.print()">🖨️ Печать / PDF</button>
+  <button onclick="exportData()">💾 Экспорт</button>
+  <button onclick="importData()">📂 Импорт</button>
+  <button class="btn-reset" onclick="resetAll()">🔄 Сбросить</button>
+</div>
+
+<div id="calendar"></div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--ios-accent)"></div>Есть расписание</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--ios-red)"></div>Каникулы / Праздник</div>
+  <div class="legend-item" style="color:var(--ios-red); font-weight:500;">Сб, Вс</div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">Расписание</h3>
+      <button class="modal-close" onclick="closeModal()">Готово</button>
+    </div>
+    <div class="modal-body" id="lessonsList"></div>
+  </div>
+</div>
+
+<!-- Регистрация Service Worker -->
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => console.log('✅ Service Worker зарегистрирован'))
+      .catch(err => console.log('❌ Ошибка SW:', err));
+  }
+</script>
+
+<script>
+  const DATA_VERSION = "5"; // PWA-версия
+
+  const MONTHS_RU = ["Январь","Февраль","Март","Апрель","Май","Июнь",
+                     "Июль","Август","Сентябрь","Октябрь","Ноябрь","Декабрь"];
+  const WEEKDAYS = ["Пн","Вт","Ср","Чт","Пт","Сб","Вс"];
+  const WEEKDAY_FULL = ["Воскресенье","Понедельник","Вторник","Среда","Четверг","Пятница","Суббота"];
+
+  const academicMonths = [
+    {year:2026, month:8},{year:2026, month:9},{year:2026, month:10},{year:2026, month:11},
+    {year:2027, month:0},{year:2027, month:1},{year:2027, month:2},{year:2027, month:3},
+    {year:2027, month:4}
+  ];
+
+  const holidays = {
+    "2027-05-27": "Не учатся", "2027-05-28": "Не учатся","2027-05-31": "Не учатся",
+    "2026-10-05": "Октябрьские каникулы", "2026-10-06": "Октябрьские каникулы",
+    "2026-10-07": "Октябрьские каникулы", "2026-10-08": "Октябрьские каникулы",
+    "2026-10-09": "Октябрьские каникулы", "2026-10-10": "Октябрьские каникулы",
+    "2026-10-11": "Октябрьские каникулы", "2026-11-04": "День народного единства",
+    "2026-11-16": "Ноябрьские каникулы", "2026-11-17": "Ноябрьские каникулы",
+    "2026-11-18": "Ноябрьские каникулы", "2026-11-19": "Ноябрьские каникулы",
+    "2026-11-20": "Ноябрьские каникулы", "2026-11-21": "Ноябрьские каникулы",
+    "2026-11-22": "Ноябрьские каникулы", "2026-12-30": "Новогодние каникулы",
+    "2026-12-31": "Новогодние каникулы", "2027-01-01": "Новогодние каникулы",
+    "2027-01-02": "Новогодние каникулы", "2027-01-03": "Новогодние каникулы",
+    "2027-01-04": "Новогодние каникулы", "2027-01-05": "Новогодние каникулы",
+    "2027-01-06": "Новогодние каникулы", "2027-01-07": "Рождество",
+    "2027-01-08": "Новогодние каникулы", "2027-01-09": "Рождество",
+    "2027-01-10": "Новогодние каникулы", "2027-02-15": "Февральские каникулы",
+    "2027-02-16": "Февральские каникулы", "2027-02-17": "Февральские каникулы",
+    "2027-02-18": "Февральские каникулы", "2027-02-19": "Февральские каникулы",
+    "2027-02-20": "Февральские каникулы", "2027-02-21": "Февральские каникулы",
+    "2027-02-22": "Февральские каникулы", "2027-02-23": "Февральские каникулы",
+    "2027-03-08": "8 Марта", "2027-04-05": "Апрельские каникулы",
+    "2027-04-06": "Апрельские каникулы", "2027-04-07": "Апрельские каникулы",
+    "2027-04-08": "Апрельские каникулы", "2027-04-09": "Апрельские каникулы",
+    "2027-04-10": "Апрельские каникулы", "2027-04-11": "Апрельские каникулы",
+    "2027-05-01": "Праздник Весны и Труда", "2027-05-09": "День Победы"
+  };
+
+  const weekTemplates = {
+    1: [
+      {subject: "Разговоры о важном", room: "108 каб."},
+      {subject: "География", room: "102 каб."},
+      {subject: "Технология", room: "219/402 каб."},
+      {subject: "ЛАНЧ", room: " "},
+      {subject: "Русский язык", room: "108 каб."},
+      {subject: "Математика", room: "106 каб."},
+      {subject: "Математика", room: "205 каб."},
+      {subject: "Русский язык", room: "108 каб."}
+    ],
+    2: [
+      {subject: "Литература", room: "108 каб."},
+      {subject: "Русский язык", room: "108 каб."},
+      {subject: "Русский язык", room: "108 каб."},
+      {subject: "ЛАНЧ", room: " "},
+      {subject: "Информатика", room: "219/402 каб."},
+      {subject: "Биология", room: "207 каб."},
+      {subject: "Математика", room: "108 каб."}
+    ],
+    3: [
+      {subject: "Музыка", room: "309 каб."},
+      {subject: "История", room: "212 каб."},
+      {subject: "Английский язык", room: "321/211 каб."},
+      {subject: "ЛАНЧ", room: " "},
+      {subject: "Русский язык", room: "108 каб."},
+      {subject: "Английский язык", room: "321/211 каб."},
+      {subject: "Физкультура", room: "209 каб."},
+      {subject: "Технология", room: "219/402 каб."}
+      
+    ],
+    4: [
+      {subject: "Математика", room: "205 каб."},
+      {subject: "Математика", room: "205 каб."},
+      {subject: "Информатика", room: "219/214 каб."},
+      {subject: "ЛАНЧ", room: " "},
+      {subject: "История", room: "205 каб."},
+      {subject: "Физкультура", room: "209 каб."},
+      {subject: "История", room: "312 каб."},
+      {subject: "Английский язык", room: "321/211 каб."},
+      {subject: "Английский язык", room: "321/211 каб."}
+    ],
+    5: [
+      {subject: "нет урока", room: " "},
+      {subject: "Английский язык", room: "321/211 каб."},
+      {subject: "Математика", room: "205 каб."},
+      {subject: "ЛАНЧ", room: " "},
+      {subject: "Русский язык", room: "108 каб."},
+      {subject: "Русский язык", room: "108 каб."},
+      {subject: "Математика", room: "202 каб."},
+      {subject: "ИЗО", room: "219/216 каб."}
+    ]
+  };
+
+  let scheduleData = JSON.parse(localStorage.getItem("scheduleData") || "{}");
+  let currentViewDate = null;
+
+  function dateKey(y, m, d) {
+    return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  }
+
+  function autoFillAllDays() {
+    if (localStorage.getItem("scheduleVersion") !== DATA_VERSION) {
+      localStorage.removeItem("scheduleData");
+      localStorage.removeItem("scheduleInitialized");
+      localStorage.setItem("scheduleVersion", DATA_VERSION);
+      scheduleData = {};
+    }
+    if (localStorage.getItem("scheduleInitialized")) return;
+    academicMonths.forEach(({year, month}) => {
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateObj = new Date(year, month, day);
+        const dow = dateObj.getDay();
+        if (dow === 0 || dow === 6) continue;
+        const key = dateKey(year, month, day);
+        if (holidays[key]) continue;
+        if (scheduleData[key]) continue;
+        if (weekTemplates[dow]) {
+          scheduleData[key] = weekTemplates[dow].map(l => ({...l}));
+        }
+      }
+    });
+    localStorage.setItem("scheduleData", JSON.stringify(scheduleData));
+    localStorage.setItem("scheduleInitialized", "1");
+  }
+
+  function buildMonth(year, monthIdx) {
+    const firstDay = new Date(year, monthIdx, 1);
+    const daysInMonth = new Date(year, monthIdx + 1, 0).getDate();
+    let startWeekday = firstDay.getDay() - 1;
+    if (startWeekday < 0) startWeekday = 6;
+    let html = `<div class="month">
+      <div class="month-title">${MONTHS_RU[monthIdx]} ${year}</div>
+      <table><thead><tr>`;
+    WEEKDAYS.forEach((d,i) => {
+      const cls = i >= 5 ? ' class="weekend-header"' : '';
+      html += `<th${cls}>${d}</th>`;
+    });
+    html += `</tr></thead><tbody><tr>`;
+    for (let i = 0; i < startWeekday; i++) html += `<td></td>`;
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateObj = new Date(year, monthIdx, day);
+      const dow = dateObj.getDay();
+      const isWeekend = dow === 0 || dow === 6;
+      const key = dateKey(year, monthIdx, day);
+      const isHoliday = holidays[key];
+      const hasSchedule = scheduleData[key] && scheduleData[key].length > 0;
+      let cls = ["clickable"];
+      if (isWeekend) cls.push("weekend");
+      if (isHoliday) cls.push("holiday");
+      if (hasSchedule) cls.push("has-schedule");
+      html += `<td class="${cls.join(' ')}" data-date="${key}" data-dow="${dow}">${day}</td>`;
+      const totalCells = startWeekday + day;
+      if (totalCells % 7 === 0 && day !== daysInMonth) html += `</tr><tr>`;
+    }
+    const filled = startWeekday + daysInMonth;
+    const remainder = filled % 7;
+    if (remainder !== 0) {
+      for (let i = 0; i < 7 - remainder; i++) html += `<td></td>`;
+    }
+    html += `</tr></tbody></table></div>`;
+    return html;
+  }
+
+  function render() {
+    const container = document.getElementById("calendar");
+    const sections = [
+      {title: "2026 год", months: academicMonths.filter(m => m.year === 2026)},
+      {title: "2027 год", months: academicMonths.filter(m => m.year === 2027)}
+    ];
+    let html = "";
+    sections.forEach(sec => {
+      html += `<div class="year-section"><h2>${sec.title}</h2><div class="months-grid">`;
+      sec.months.forEach(m => html += buildMonth(m.year, m.month));
+      html += `</div></div>`;
+    });
+    container.innerHTML = html;
+  }
+
+  document.getElementById("calendar").addEventListener("click", (e) => {
+    const td = e.target.closest("td.clickable");
+    if (!td) return;
+    openModal(td.dataset.date, parseInt(td.dataset.dow));
+  });
+
+  function openModal(dateKeyStr, dow) {
+    currentViewDate = dateKeyStr;
+    const [y, m, d] = dateKeyStr.split("-").map(Number);
+    const dateObj = new Date(y, m - 1, d);
+    const formatted = dateObj.toLocaleDateString("ru-RU", {
+      day: "numeric", month: "long", year: "numeric"
+    });
+    document.getElementById("modalTitle").textContent = `${formatted}, ${WEEKDAY_FULL[dow]}`;
+    renderLessonsReadOnly();
+    document.getElementById("modalOverlay").classList.add("active");
+    document.body.style.overflow = "hidden";
+  }
+
+  function renderLessonsReadOnly() {
+    const list = document.getElementById("lessonsList");
+    const lessons = scheduleData[currentViewDate] || [];
+    if (lessons.length === 0) {
+      const [y, m, d] = currentViewDate.split("-").map(Number);
+      const key = dateKey(y, m-1, d);
+      const isHoliday = holidays[key];
+      const msg = isHoliday ? `🎉 ${isHoliday}` : "Уроков нет";
+      list.innerHTML = `<div class="empty-message">${msg}</div>`;
+      return;
+    }
+    list.innerHTML = lessons.map((l, i) => `
+      <div class="lesson-item">
+        <div class="lesson-num">${i + 1}</div>
+        <div class="lesson-info">
+          <div class="lesson-subject">${escapeHtml(l.subject) || "—"}</div>
+          <div class="lesson-room">${escapeHtml(l.room) || ""}</div>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function escapeHtml(s) {
+    return String(s || "").replace(/[&<>"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
+  }
+
+  function closeModal() {
+    document.getElementById("modalOverlay").classList.remove("active");
+    document.body.style.overflow = "";
+    currentViewDate = null;
+  }
+
+  document.getElementById("modalOverlay").addEventListener("click", (e) => {
+    if (e.target.id === "modalOverlay") closeModal();
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeModal();
+  });
+
+  function exportData() {
+    const blob = new Blob([JSON.stringify(scheduleData, null, 2)], {type: "application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `schedule_6B_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importData() {
+    const input = document.createElement("input");
+    input.type = "file"; input.accept = "application/json";
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          if (confirm("Заменить текущее расписание данными из файла?")) {
+            scheduleData = data;
+            localStorage.setItem("scheduleData", JSON.stringify(scheduleData));
+            localStorage.setItem("scheduleInitialized", "1");
+            render();
+            alert("✅ Данные импортированы");
+          }
+        } catch (err) {
+          alert("❌ Ошибка чтения файла");
+        }
+      };
+      reader.readAsText(file);
+    };
+    input.click();
+  }
+
+  function resetAll() {
+    if (!confirm("Удалить ВСЁ расписание и заполнить заново по шаблонам?")) return;
+    localStorage.removeItem("scheduleData");
+    localStorage.removeItem("scheduleInitialized");
+    scheduleData = {};
+    autoFillAllDays();
+    render();
+    alert("✅ Расписание сброшено и заполнено заново");
+  }
+
+  autoFillAllDays();
+  render();
+</script>
+
+</body>
+</html>
