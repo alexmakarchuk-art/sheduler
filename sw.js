@@ -1,4 +1,4 @@
-const CACHE_NAME = 'calendar-6b-v7'; // ⚠️ УВЕЛИЧЬТЕ ВЕРСИЮ
+const CACHE_NAME = 'calendar-6b-v8'; // ⚠️ УВЕЛИЧЬТЕ ВЕРСИЮ
 const urlsToCache = [
   './',
   './index.html',
